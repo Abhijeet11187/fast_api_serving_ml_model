@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel,Field,computed_field
+from pydantic import BaseModel,Field,computed_field,field_validator
 from typing import Literal,Annotated
 import pickle
 import pandas as pd
@@ -11,6 +11,8 @@ with open('model/model.pkl','rb') as f:
     model=pickle.load(f)
     
 app=FastAPI()
+
+MODEL_VERSION='1.1.0'
 
 tier_1_cities = ["Mumbai", "Delhi", "Bangalore", "Chennai", "Kolkata", "Hyderabad", "Pune"]
 tier_2_cities = [
@@ -32,6 +34,12 @@ class UserInput(BaseModel):
     smoker:Annotated[bool,Field(...,description="Is user a smoker or not")]
     city:Annotated[str,Field(...,description="City of the user")]
     occupation:Annotated[Literal['retired','freelancer','student','goverment_job','business_owner','unemployed','private_job'],Field(...,description="Users Occupation")]
+    
+    @field_validator('city')
+    @classmethod
+    def normalize_city(cls,v:str)->str:
+        v=v.strip().title()
+        return v
     
     @computed_field
     @property
@@ -69,7 +77,18 @@ class UserInput(BaseModel):
             return 2
         else:
             return 3
-        
+       
+
+@app.get("/")
+def home():
+    return {'message':"Insurance Premium Prediction API"}
+
+@app.get("/health")
+def health_check():
+    return {
+        "status":"OK",
+        "version":MODEL_VERSION
+    } 
 
 @app.post("/predict")
 def predict_premium(data:UserInput):
