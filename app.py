@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 # Import the ML model
 
-with open('model.pkl','rb') as f:
+with open('model/model.pkl','rb') as f:
     model=pickle.load(f)
     
 app=FastAPI()
