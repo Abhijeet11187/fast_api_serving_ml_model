@@ -87,7 +87,8 @@ def home():
 def health_check():
     return {
         "status":"OK",
-        "version":MODEL_VERSION
+        "version":MODEL_VERSION,
+        "model_loaded":model is not None
     } 
 
 @app.post("/predict")
