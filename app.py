@@ -1,18 +1,15 @@
 from fastapi import FastAPI
 from pydantic import BaseModel,Field,computed_field,field_validator
 from typing import Literal,Annotated
-import pickle
-import pandas as pd
+
 from fastapi.responses import JSONResponse
 from schema.user_input import UserInput
+from model.predict import predict_output ,MODEL_VERSION,model
 # Import the ML model
 
-with open('model/model.pkl','rb') as f:
-    model=pickle.load(f)
     
 app=FastAPI()
 
-MODEL_VERSION='1.1.0'
 
 
 # Pydantic model to validate incoming data
@@ -34,16 +31,16 @@ def health_check():
 @app.post("/predict")
 def predict_premium(data:UserInput):
     
-    input_df=pd.DataFrame([{
+    user_input={
         "bmi":data.bmi,
         "age_group":data.age_group,
         "lifestyle_risk":data.lifestyle_risk,
         "city_tier":data.city_tier,
         "income_lpa":data.income_lpa,
         "occupation":data.occupation,
-    }])
+    }
     
-    prediction=model.predict(input_df)[0]
+    prediction=predict_output(user_input)
     
     return JSONResponse(
         status_code=200,
